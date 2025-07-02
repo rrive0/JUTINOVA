@@ -3,142 +3,149 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NOVA Gang Monitor</title>
+  <title>NOVA Gang Tracker</title>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Prompt', sans-serif;
-      background: radial-gradient(circle, #0c0f1a, #06080f);
-      color: #e0f7ff;
+      background: #0a0d14;
+      color: #e0f2ff;
+      padding: 20px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       min-height: 100vh;
-      padding: 30px 15px;
     }
 
-    .wrapper {
-      max-width: 1300px;
-      margin: auto;
-      background: rgba(0, 12, 20, 0.8);
-      border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 0 30px rgba(0, 255, 255, 0.05);
+    .dashboard {
+      width: 100%;
+      max-width: 900px;
+      background: #11141c;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.05);
+      border: 1px solid #1a2c3c;
     }
 
     .title {
       text-align: center;
-      font-size: 2.2rem;
-      margin-bottom: 20px;
+      font-size: 1.8rem;
       color: #00ccff;
-      text-shadow: 0 0 10px #00ccff88;
+      text-shadow: 0 0 6px #00ccff88;
+      margin-bottom: 6px;
     }
 
-    .grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 30px;
-      justify-content: space-between;
-    }
-
-    .zone {
-      flex: 1 1 48%;
-      padding: 20px;
-      background: rgba(0, 0, 0, 0.4);
-      border-radius: 15px;
-      border: 1px solid #003344;
-      min-height: 200px;
-    }
-
-    .zone h3 {
-      font-size: 1.3rem;
-      margin-bottom: 15px;
+    .subtitle, .refresh-info {
       text-align: center;
-      color: #00ffee;
-    }
-
-    .offline h3 {
-      color: #ff6677;
-    }
-
-    .card {
-      background: #0f1a26;
-      border-left: 4px solid #00ffcc;
-      border-radius: 8px;
-      padding: 10px 14px;
-      margin-bottom: 10px;
-      box-shadow: 0 0 6px rgba(0,255,204,0.1);
-      font-size: 0.95rem;
-    }
-
-    .offline .card {
-      border-left-color: #ff4444;
-      background: #1a0f10;
-      box-shadow: 0 0 6px rgba(255, 68, 68, 0.1);
-    }
-
-    .name {
-      font-weight: bold;
-    }
-
-    .meta {
       font-size: 0.85rem;
-      color: #9ec9de;
+      color: #a2cbdc;
+      margin-bottom: 8px;
     }
 
-    .time {
+    .timestamp {
       text-align: center;
-      margin-bottom: 20px;
-      font-size: 0.95rem;
-      color: #ccc;
+      font-size: 0.75rem;
+      color: #aaa;
+      margin-bottom: 12px;
     }
+
+    .status-container {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .status-box {
+      background: #0f141c;
+      border-radius: 10px;
+      padding: 12px;
+      flex: 1 1 45%;
+      min-width: 240px;
+      border: 1px solid #1f3c4c;
+    }
+
+    .status-box h2 {
+      text-align: center;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      color: #00f7ff;
+    }
+
+    .status-box.offline h2 {
+      color: #ff5c5c;
+    }
+
+    .player-card {
+      background: #1a2333;
+      border-left: 3px solid #00ffcc;
+      padding: 6px 10px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 0.75rem;
+    }
+
+    .offline .player-card {
+      background: #2b1418;
+      border-left-color: #ff4d4d;
+    }
+
+    .player-name { font-weight: bold; }
+    .player-meta { font-size: 0.7rem; color: #9ccfe0; }
 
     #unlockAudio {
       position: fixed;
-      top: 15px;
-      left: 15px;
-      z-index: 9999;
+      bottom: 15px;
+      right: 15px;
+      z-index: 999;
       background: #00ccff;
-      color: #000;
       border: none;
+      color: #000;
+      padding: 6px 10px;
+      font-size: 0.75rem;
       border-radius: 6px;
-      padding: 6px 12px;
       cursor: pointer;
-      font-family: 'Prompt', sans-serif;
+      box-shadow: 0 0 8px #00ccff88;
+    }
+
+    #unlockAudio:hover {
+      background: #00aaff;
     }
 
     @media (max-width: 768px) {
-      .grid {
+      .status-container {
         flex-direction: column;
       }
-      .zone {
+      .status-box {
         flex: 1 1 100%;
       }
     }
   </style>
 </head>
 <body>
-  <div class="wrapper">
-    <h1 class="title">รายชื่อสมาชิก NOVA</h1>
-    <div class="time" id="time">โหลดข้อมูล: -</div>
-    <div class="grid">
-      <div class="zone online">
-        <h3>🟢 ออนไลน์</h3>
+
+  <div class="dashboard">
+    <h1 class="title">JUTI GANG IN NOVA</h1>
+    <p class="subtitle">REAL TIME</p>
+    <p class="refresh-info" id="refreshNotice">🔄 รีในอีก 1 วินาที...</p>
+    <div class="timestamp" id="time">กำลังโหลด...</div>
+
+    <div class="status-container">
+      <div class="status-box online">
+        <h2>🟢 ออนไลน์ (<span id="onlineCount">0</span> คน)</h2>
         <div id="onlineList"></div>
       </div>
-      <div class="zone offline">
-        <h3>🔴 ออฟไลน์</h3>
+      <div class="status-box offline">
+        <h2>🔴 ออฟไลน์ (<span id="offlineCount">0</span> คน)</h2>
         <div id="offlineList"></div>
       </div>
     </div>
   </div>
 
   <audio id="alertSound" src="report.m4a" preload="auto"></audio>
-
-  <button id="unlockAudio">เปิดเสียงแจ้งเตือน</button>
+  <button id="unlockAudio">เปิดเสียงแจ้งเตือนคนเข้าเซิฟ</button>
 
   <script>
     const watchList = [
@@ -153,9 +160,19 @@
       "[Juti] Meeboon PL", "[Juti] Nadear Mayaa", "[Juti] Dave Mooss", "[JUTI] Phat Rakmae",
       "[JUTI] Dxbbpi Jutistory"
     ];
+
     let previousOnline = [];
+    let refreshCounter = 1;
+
+    function updateCountdown() {
+      document.getElementById("refreshNotice").innerText = `CHACK MEMBER GANG ${refreshCounter} วินาที UPDATA WEBSITE`;
+      refreshCounter--;
+      if (refreshCounter < 0) refreshCounter = 1;
+    }
 
     async function checkPlayers() {
+      refreshCounter = 1;
+
       const res = await fetch("https://dekhudbad.online/fivem/players?ip=141.11.158.31&port=30120");
       const data = await res.json();
       const players = Array.isArray(data) ? data : [];
@@ -168,24 +185,27 @@
 
       const newOnline = online.map(p => p.name);
       const newPlayers = newOnline.filter(n => !previousOnline.includes(n));
-      if (newPlayers.length && previousOnline.length) document.getElementById("alertSound").play();
+      if (newPlayers.length && previousOnline.length) {
+        document.getElementById("alertSound").play();
+      }
       previousOnline = newOnline;
 
-      document.getElementById("time").innerText = `เวลา: ${new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })}`;
+      document.getElementById("time").innerText = `อัปเดต: ${new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })}`;
+      document.getElementById("onlineCount").innerText = online.length;
+      document.getElementById("offlineCount").innerText = offline.length;
 
       document.getElementById("onlineList").innerHTML = online.map(p => `
-        <div class="card">
-          <div class="name">🟢 ${p.name}</div>
-          <div class="meta">Ping: ${p.ping ?? "-"} | ID: ${p.id ?? "-"}</div>
+        <div class="player-card">
+          <div class="player-name">🟢 ${p.name}</div>
+          <div class="player-meta">Ping: ${p.ping ?? "-"} | ID: ${p.id ?? "-"}</div>
         </div>`).join('');
 
       document.getElementById("offlineList").innerHTML = offline.map(name => `
-        <div class="card">
-          <div class="name">🔴 ${name}</div>
+        <div class="player-card">
+          <div class="player-name">🔴 ${name}</div>
         </div>`).join('');
     }
 
-    // 🔓 ปลดล็อกเสียง
     document.getElementById("unlockAudio").addEventListener("click", () => {
       const sound = document.getElementById("alertSound");
       sound.play().then(() => {
@@ -197,6 +217,7 @@
 
     checkPlayers();
     setInterval(checkPlayers, 1000);
+    setInterval(updateCountdown, 1000);
   </script>
 </body>
 </html>
