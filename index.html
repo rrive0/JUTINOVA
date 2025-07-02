@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NOVA Gang Monitor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Prompt', sans-serif;
+      background: radial-gradient(circle, #0c0f1a, #06080f);
+      color: #e0f7ff;
+      min-height: 100vh;
+      padding: 30px 15px;
+    }
+
+    .wrapper {
+      max-width: 1300px;
+      margin: auto;
+      background: rgba(0, 12, 20, 0.8);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.05);
+    }
+
+    .title {
+      text-align: center;
+      font-size: 2.2rem;
+      margin-bottom: 20px;
+      color: #00ccff;
+      text-shadow: 0 0 10px #00ccff88;
+    }
+
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      justify-content: space-between;
+    }
+
+    .zone {
+      flex: 1 1 48%;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 15px;
+      border: 1px solid #003344;
+      min-height: 200px;
+    }
+
+    .zone h3 {
+      font-size: 1.3rem;
+      margin-bottom: 15px;
+      text-align: center;
+      color: #00ffee;
+    }
+
+    .offline h3 {
+      color: #ff6677;
+    }
+
+    .card {
+      background: #0f1a26;
+      border-left: 4px solid #00ffcc;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 0 6px rgba(0,255,204,0.1);
+      font-size: 0.95rem;
+    }
+
+    .offline .card {
+      border-left-color: #ff4444;
+      background: #1a0f10;
+      box-shadow: 0 0 6px rgba(255, 68, 68, 0.1);
+    }
+
+    .name {
+      font-weight: bold;
+    }
+
+    .meta {
+      font-size: 0.85rem;
+      color: #9ec9de;
+    }
+
+    .time {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 0.95rem;
+      color: #ccc;
+    }
+
+    #unlockAudio {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      z-index: 9999;
+      background: #00ccff;
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-family: 'Prompt', sans-serif;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        flex-direction: column;
+      }
+      .zone {
+        flex: 1 1 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <h1 class="title">รายชื่อสมาชิก NOVA</h1>
+    <div class="time" id="time">โหลดข้อมูล: -</div>
+    <div class="grid">
+      <div class="zone online">
+        <h3>🟢 ออนไลน์</h3>
+        <div id="onlineList"></div>
+      </div>
+      <div class="zone offline">
+        <h3>🔴 ออฟไลน์</h3>
+        <div id="offlineList"></div>
+      </div>
+    </div>
+  </div>
+
+  <audio id="alertSound" src="report.m4a" preload="auto"></audio>
+
+  <button id="unlockAudio">เปิดเสียงแจ้งเตือน</button>
+
+  <script>
+    const watchList = [
+      "[Juti] Phat Xers", "[JUTI] Yung Polarbears", "[Juti] Dajim Youngbxy",
+      "[Juti] Brayden Talomlok", "[Juti] Vin Zensoll", "[Juti] Sirzechs Slur",
+      "[Juti] FIVE Colinfirth", "[Juti] Ron Slur", "[Juti] Ethan Nxnnalmyen",
+      "[Juti] Luca Slur", "[Juti] Makok Kaosen", "[Juti] Hoho Wodovo",
+      "[Juti] Jabby Brasco", "[Juti] Win Dekdee", "[Juti] Min Wellesley",
+      "[Juti] Levi Wellesley", "[Juti] Pan Realonesix", "[Juti] Names Polarbears",
+      "[Juti] Daiim Youngbxv", "[Juti] Quin Bulgaria", "[Juti] Macro Ingame",
+      "[Juti] Edward Nauthiz", "[Juti] Wano Youngbxy", "[Juti]Realking Youngbxy",
+      "[Juti] Meeboon PL", "[Juti] Nadear Mayaa", "[Juti] Dave Mooss", "[JUTI] Phat Rakmae",
+      "[JUTI] Dxbbpi Jutistory"
+    ];
+    let previousOnline = [];
+
+    async function checkPlayers() {
+      const res = await fetch("https://dekhudbad.online/fivem/players?ip=141.11.158.31&port=30120");
+      const data = await res.json();
+      const players = Array.isArray(data) ? data : [];
+      const online = [], offline = [];
+
+      for (const name of watchList) {
+        const match = players.find(p => p.name?.toLowerCase() === name.toLowerCase());
+        if (match) online.push(match); else offline.push(name);
+      }
+
+      const newOnline = online.map(p => p.name);
+      const newPlayers = newOnline.filter(n => !previousOnline.includes(n));
+      if (newPlayers.length && previousOnline.length) document.getElementById("alertSound").play();
+      previousOnline = newOnline;
+
+      document.getElementById("time").innerText = `เวลา: ${new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })}`;
+
+      document.getElementById("onlineList").innerHTML = online.map(p => `
+        <div class="card">
+          <div class="name">🟢 ${p.name}</div>
+          <div class="meta">Ping: ${p.ping ?? "-"} | ID: ${p.id ?? "-"}</div>
+        </div>`).join('');
+
+      document.getElementById("offlineList").innerHTML = offline.map(name => `
+        <div class="card">
+          <div class="name">🔴 ${name}</div>
+        </div>`).join('');
+    }
+
+    // 🔓 ปลดล็อกเสียง
+    document.getElementById("unlockAudio").addEventListener("click", () => {
+      const sound = document.getElementById("alertSound");
+      sound.play().then(() => {
+        document.getElementById("unlockAudio").style.display = "none";
+      }).catch(err => {
+        console.warn("ไม่สามารถเปิดเสียงได้:", err);
+      });
+    });
+
+    checkPlayers();
+    setInterval(checkPlayers, 1000);
+  </script>
+</body>
+</html>
